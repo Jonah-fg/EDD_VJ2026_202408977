@@ -127,7 +127,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Cola.cpp" />
+    <ClCompile Include="Entrega.cpp" />
+    <ClCompile Include="ListaDoble.cpp" />
+    <ClCompile Include="Lote.cpp" />
     <ClCompile Include="Proyecto1_EDD.cpp" />
+    <ClCompile Include="Registro.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Cola.h" />
+    <ClInclude Include="Entrega.h" />
+    <ClInclude Include="ListaDoble.h" />
+    <ClInclude Include="Lote.h" />
+    <ClInclude Include="Registro.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
