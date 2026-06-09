@@ -20,7 +20,7 @@ public:
     bool buscarPorCodigo(string codigo, Lote& encontrado);
     bool buscarPorFinca(string finca, Lote& encontrado);
     void actualizarCantidad(string codigo, int nuevaCantidad);
-    void mostrar(); // consola
+    void mostrar(); 
     void generarReporte(const string& nombreArchivo);
     NodoLD* getCabeza() { return cabeza; }
 };

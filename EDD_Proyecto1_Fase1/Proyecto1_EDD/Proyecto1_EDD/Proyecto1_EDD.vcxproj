@@ -130,7 +130,9 @@
     <ClCompile Include="Cola.cpp" />
     <ClCompile Include="Entrega.cpp" />
     <ClCompile Include="ListaDoble.cpp" />
+    <ClCompile Include="ListaPilas.cpp" />
     <ClCompile Include="Lote.cpp" />
+    <ClCompile Include="Pila.cpp" />
     <ClCompile Include="Proyecto1_EDD.cpp" />
     <ClCompile Include="Registro.cpp" />
   </ItemGroup>
@@ -138,7 +140,9 @@
     <ClInclude Include="Cola.h" />
     <ClInclude Include="Entrega.h" />
     <ClInclude Include="ListaDoble.h" />
+    <ClInclude Include="ListaPilas.h" />
     <ClInclude Include="Lote.h" />
+    <ClInclude Include="Pila.h" />
     <ClInclude Include="Registro.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

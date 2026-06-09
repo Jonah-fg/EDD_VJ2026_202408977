@@ -28,10 +28,10 @@ Lote Cola::dequeue() {
         return vacio; 
     }
     NodoCola* temp=frente;
-    Lote l =temp->dato;
+    Lote l=temp->dato;
     frente =frente->sig;
     if (!frente)
-        final =nullptr;
+        final=nullptr;
     delete temp;
     return l;
 }
@@ -43,26 +43,26 @@ bool Cola::vacia() {
 void Cola::mostrar() {
     NodoCola* actual =frente;
     while (actual) {
-        cout << "Lote: " << actual->dato.codigo << ", Finca: " << actual->dato.finca<< ", Cant: " << actual->dato.cantidad << endl;
-        actual = actual->sig;
+        cout << "Lote: "<< actual->dato.codigo << ", Finca: " << actual->dato.finca<< ", Cant: " << actual->dato.cantidad << endl;
+        actual =actual->sig;
     }
 }
 
 void Cola::generarReporte(const string& nombreArchivo) {
     ofstream dot(nombreArchivo + ".dot");
     dot << "digraph G {\n rankdir=LR;\n node [shape=circle];\n";
-    NodoCola* actual = frente;
+    NodoCola* actual=frente;
     int id = 0;
     while (actual) {
         dot << "node" << id << " [label=\"Lote: " << actual->dato.codigo << "\\nFinca: " << actual->dato.finca
-            << "\\nCant: " << actual->dato.cantidad << "\"];\n";
+            << "\\nCant: "<< actual->dato.cantidad << "\"];\n";
         if (actual->sig) {
-            dot << "node" << id << " -> node" << id + 1 << ";\n";
+            dot << "node"<<id<< " -> node" << id+1 << ";\n";
         }
-        actual = actual->sig;
+        actual =actual->sig;
         id++;
     }
     dot << "}\n";
     dot.close();
-    system(("dot -Tpng " + nombreArchivo + ".dot -o " + nombreArchivo + ".png").c_str());
+    system(("dot -Tpng "+ nombreArchivo + ".dot -o " + nombreArchivo + ".png").c_str());
 }
