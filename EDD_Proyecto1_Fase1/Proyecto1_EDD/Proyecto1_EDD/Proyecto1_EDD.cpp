@@ -19,7 +19,7 @@ ListaPilas fincas;
 
 int main() {
     int rol;
-    cout << "Bienvenido a EDD CoffeeTrack\n";
+    cout <<"Bienvenido a EDD CoffeeTrack\n";
     cout << "1. Administrador\n";
     cout << "2. Usuario (operario/planta)\n";
     cout << "Seleccione rol: ";
@@ -42,7 +42,6 @@ int main() {
 }
 
 // MENUS
-
 void menuAdmin() {
     int opciones;
     do {
@@ -87,7 +86,7 @@ void menuAdmin() {
         case 8: cout <<"Saliendo...\n"; 
             break;
 
-        default: cout <<"Opcion invalida, prueba con otra.\n";
+        default: cout<<"Opcion invalida, prueba con otra.\n";
         }
     } 
     while (opciones !=8);
@@ -126,4 +125,71 @@ void menuUsuario() {
     } 
     while (op!= 4);
 }
+
+string ahora() {
+    time_t t=time(nullptr);
+    char buf[20];
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", localtime(&t));
+    return string(buf);
+}
+
+void generarTodosReportes() {
+    inventario.generarReporte("reporte_inventario");
+    colaDespulpado.generarReporte("reporte_cola");
+    bitacoraAdmin.generarReporte("reporte_bitacora");
+    fincas.generarReporte("reporte_fincas");
+}
+
+
+void logAccion(string tipo, string detalles) {
+    Registro r;
+    r.fechaHora =ahora();
+    r.tipoAccion=tipo;
+    r.detalles=detalles;
+    bitacoraAdmin.push(r);
+    generarTodosReportes();
+}
+
+void cargaMasivaCSV(string archivo) {
+    ifstream file(archivo);
+    if (!file.is_open()) {
+        cout <<"No se pudo abrir el archivo.\n";
+        return;
+    }
+    string linea;
+    getline(file, linea); 
+    while (getline(file, linea)) {
+        stringstream ss(linea);
+        Lote l;
+        getline(ss, l.codigo,',');
+        getline(ss, l.finca,',');
+        getline(ss, l.origen, ',');
+        string cant; getline(ss, cant, ','); l.cantidad=stoi(cant);
+        getline(ss, l.fechaRecepcion, ',');
+        string min; getline(ss, min,','); l.nivelMinimo= stoi(min);
+        inventario.insertarOrdenado(l);
+    }
+    file.close();
+    logAccion("Carga masiva","Se cargaron lotes dsde " + archivo);
+}
+
+void registrarLoteManual() {
+    Lote l;
+    cout << "Codigo: ";cin >> l.codigo;
+    cout << "Finca: ";cin >> l.finca;
+    cout << "Origen:"; cin >> l.origen;
+    cout << "Cantidad: "; cin >> l.cantidad;
+    cout << "Fecha recepcion (YYYY-MM-DD): ";cin >> l.fechaRecepcion;
+    cout << "Nivel minimo reorden: "; cin>>l.nivelMinimo;
+    inventario.insertarOrdenado(l);
+    logAccion("Registro lote","Lote " +l.codigo + " registrado");
+    cout << "¿Encolar para despulpado? (s/n): ";
+    char op;cin >>op;
+    if (op == 's'|| op=='S') {
+        colaDespulpado.enqueue(l);
+        logAccion("Envio a cla","Lote " + l.codigo + " encolado");
+    }
+}
+
+
 
