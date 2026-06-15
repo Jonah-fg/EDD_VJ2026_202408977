@@ -63,31 +63,38 @@ void ListaPilas::mostrar() {
 
 void ListaPilas::generarReporte(const string& nombreArchivo) {
     ofstream dot(nombreArchivo + ".dot");
-    dot <<"digraph G{\n rankdir=LR;\n node [shape=box];\n";
+    dot << "digraph G {\n rankdir=LR;\n node [shape=box];\n";
     NodoFinca* actual=cabeza;
-    int idF =0;
+    int idF=0;
     while (actual) {
-        dot << "subgraph cluster_" << idF << " {\n label=\"" << actual->nombreFinca << "\";\n rankdir=TB;\n";
+        dot << "subgraph cluster_" << idF << "{\n";
+        dot << "  label=\"" <<actual->nombreFinca << "\";\n";
+        dot << "  rankdir=TB;\n";
+
         NodoEntrega* e = actual->topeEntregas;
-        int idEntrega =0;
-        NodoEntrega* prev= nullptr;
-        while (e){
-            dot << "e" << idF << "_" << idEntrega << " [label=\"Fecha: " << e->dato.fecha << "\\nCantidad: " << e->dato.cantidad << "\"];\n";
-            if (prev) {
-                dot << "e" << idF << "_"<< idEntrega-1 << " -> e" << idF << "_" << idEntrega << ";\n";
+        if (e==nullptr) {
+            dot << "  vacio" << idF << " [label=\"Sin entregs aún\", style=dashed, color=gray];\n";
+        }
+        else {
+            int idEntrega=0;
+            NodoEntrega* prev = nullptr;
+            while (e) {
+                dot << "  entrega" << idF << "_" << idEntrega
+                    << " [label=\"Fecha: "<< e->dato.fecha << "\\nCant: " << e->dato.cantidad << "\"];\n";
+                if (prev) {
+                    dot << "  entrega" << idF << "_" << idEntrega - 1
+                        << " -> entrega" << idF << "_" << idEntrega << ";\n";
+                }
+                prev=e;
+                e=e->abajo;
+                idEntrega++;
             }
-            prev=e;
-            e =e->abajo;
-            idEntrega++;
         }
         dot << "}\n";
-        if (actual->sig) {
-            dot << "finca" << idF << " -> finca" << idF + 1 << " [style=invis];\n";
-        }
         actual= actual->sig;
         idF++;
     }
-    dot <<"}\n";
+    dot << "}\n";
     dot.close();
     system(("dot -Tpng " + nombreArchivo + ".dot -o " + nombreArchivo + ".png").c_str());
 }

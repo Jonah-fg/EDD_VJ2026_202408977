@@ -8,7 +8,7 @@ ListaDoble::ListaDoble() : cabeza(nullptr), cola(nullptr) {}
 ListaDoble::~ListaDoble() {
     while (cabeza) {
         NodoLD* temp=cabeza;
-        cabeza =cabeza->sig;
+        cabeza=cabeza->sig;
         delete temp;
     }
 }
@@ -30,15 +30,15 @@ void ListaDoble::insertarOrdenado(Lote l) {
     while (actual->sig && actual->sig->dato.codigo < l.codigo) {
         actual=actual->sig;
     }
-    nuevo->sig = actual->sig;
-    if (actual->sig) {
+    nuevo->sig =actual->sig;
+    if (actual->sig){
         actual->sig->ant =nuevo;
     }
     else {
         cola=nuevo;
-        actual->sig= nuevo;
-        nuevo->ant=actual;
     }
+    actual->sig=nuevo;
+    nuevo->ant=actual;
 }
 
 bool ListaDoble::buscarPorCodigo(string codigo, Lote& encontrado) {
@@ -60,7 +60,7 @@ bool ListaDoble::buscarPorFinca(string finca, Lote& encontrado) {
             encontrado =actual->dato;
             return true;
         }
-        actual = actual->sig;
+        actual =actual->sig;
     }
     return false;
 }
@@ -79,12 +79,12 @@ void ListaDoble::actualizarCantidad(string codigo, int nuevaCantidad) {
 void ListaDoble::mostrar() {
     NodoLD* actual=cabeza;
     while (actual) {
-        cout << "Cod:" << actual->dato.codigo << ", Finca: " << actual->dato.finca << ", Cant: " << actual->dato.cantidad << ", Rec: " << actual->dato.fechaRecepcion  << ", Min: " << actual->dato.nivelMinimo;
+        cout << "Cod:" << actual->dato.codigo << ", Finca: " << actual->dato.finca<< ", Cant: " << actual->dato.cantidad << ", Rec: " << actual->dato.fechaRecepcion << ", Min: " << actual->dato.nivelMinimo;
         if (actual->dato.cantidad < actual->dato.nivelMinimo) {
             cout <<" [ALERTA: bajo stock]";
-            cout << endl;
-            actual=actual->sig;
         }
+        cout<<endl;
+        actual =actual->sig; 
     }
 }
 
@@ -94,7 +94,7 @@ void ListaDoble::generarReporte(const string& nombreArchivo) {
     NodoLD* actual=cabeza;
     int id =0;
     while (actual) {
-        string color = (actual->dato.cantidad < actual->dato.nivelMinimo) ? "red" : "green";
+        string color=(actual->dato.cantidad < actual->dato.nivelMinimo) ? "red" : "green";
         dot << "node" << id << " [label=\"Código: " << actual->dato.codigo << "\\nFinca: " << actual->dato.finca
             << "\\nCantidad: " << actual->dato.cantidad << "\\nFecha: " << actual->dato.fechaRecepcion
             << "\" style=filled fillcolor=" << color << "];\n";

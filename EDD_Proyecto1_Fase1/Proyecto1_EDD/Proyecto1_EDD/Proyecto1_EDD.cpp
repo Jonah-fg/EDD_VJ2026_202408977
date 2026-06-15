@@ -17,10 +17,7 @@ Cola colaDespulpado;
 Pila bitacoraAdmin;
 ListaPilas fincas;
 
-bool login() {return true;}
-void consultarDisponibilidad() {}
-void enviarLoteACola() {}
-void verHistorialProcesados() {}
+
 
 string ahora() {
     time_t t=time(nullptr);
@@ -49,30 +46,44 @@ void logAccion(string tipo, string detalles) {
 void cargaMasivaCSV(string archivo) {
     ifstream file(archivo);
     if (!file.is_open()) {
-        cout <<"No se pudo abrir el archivo.\n";
+        cout << "No se pudo abrir el archivo.\n";
         return;
     }
     string linea;
-    getline(file, linea); 
+    getline(file, linea);
+    int totalLeidos = 0;
+    int totalInsertados= 0;
     while (getline(file, linea)) {
         stringstream ss(linea);
         Lote l;
-        getline(ss, l.codigo,',');
-        getline(ss, l.finca,',');
+        getline(ss, l.codigo, ',');
+        getline(ss, l.finca, ',');
         getline(ss, l.origen, ',');
         string cant; getline(ss, cant, ','); l.cantidad=stoi(cant);
-        getline(ss, l.fechaRecepcion, ',');
+        getline(ss,l.fechaRecepcion, ',');
         string min; getline(ss, min,','); l.nivelMinimo= stoi(min);
+        totalLeidos++;
+
+        if (!fincas.existeFinca(l.finca)) {
+            cout << "Advertencia: Finca '"<< l.finca << "' no regisrada. Lote " << l.codigo << " omitido.\n";
+            continue;
+        }
         inventario.insertarOrdenado(l);
+         totalInsertados++;
     }
     file.close();
-    logAccion("Carga masiva","Se cargaron lotes dsde " +archivo);
-}  
+    logAccion("Carga masiva", "Se cargaron " + to_string(totalInsertados) + " lotes desde " + archivo);
+    cout << "Carga compltada. Insertados: " <<totalInsertados<< ", omitidos: " << (totalLeidos-totalInsertados)<< "\n";
+}
 
 void registrarLoteManual() {
     Lote l;
     cout << "Codigo: ";cin >> l.codigo;
     cout <<"Finca: ";cin >> l.finca;
+    if (!fincas.existeFinca(l.finca)) {
+        cout << "Error: La finca '" << l.finca << "' no está reistrada. Use la opción 3 prmero.\n";
+        return;
+    }
     cout << "Origen:"; cin >> l.origen;
     cout <<"Cantidad: "; cin >> l.cantidad;
     cout << "Fecha recepcion (YYYY-MM-DD): ";cin >> l.fechaRecepcion;
@@ -83,7 +94,7 @@ void registrarLoteManual() {
     char op;cin >>op;
     if (op =='s'|| op=='S') {
         colaDespulpado.enqueue(l);
-        logAccion("Envio a cla","Lote " + l.codigo + " encolado");
+        logAccion("Envio a cla","Lote " +l.codigo+ " encolado");
     }
 }
 
@@ -92,9 +103,13 @@ void gestionarFincas() {
     string nombre;
     cout <<"Nombre de la nuva finca: ";
     cin >>nombre;
+    if (fincas.existeFinca(nombre)) {
+        cout << "La finca ya existe.\n";
+        return;
+    }
     fincas.agregarFinca(nombre);
     logAccion("Gestion finca", "Se agrego la finca " +nombre);
-    cout << "Finca registrda.\n";
+    cout <<"Finca registrda.\n";
 }
 
 // Registrar entrega de sacos por finca
@@ -102,29 +117,35 @@ void registrarEntregaFinca() {
     string nombre;
     string fecha;
     int cantidad;
-    cout << "Nombre de la finca: "; cin>> nombre;
+	cout << "Nombre de la inca: ";cin >> nombre;
     if (!fincas.existeFinca(nombre)) {
-        cout << "La finca no existe. Regitrela primero.\n";
+        cout << "La finca no exite. Regístrela primero (opción 3).\n";
         return;
     }
-    cout <<"Fecha de entrega (YYYY-MM-DD): "; cin >> fecha;
-    cout << "Cantidad de sacos: "; cin >>cantidad;
+
+    cout << "Fecha de entrega (YYYY-MM-DD): "; cin >> fecha;
+    cout << "Cantidad de sacos a retirar: "; cin >> cantidad;
+
+    Lote loteExistente;
+    if (!inventario.buscarPorFinca(nombre, loteExistente)) {
+        cout << "No hay loes de la finca '" <<nombre<< "' en inventario. No se puede retirar.\n";
+        return;
+    }
+
+    if (loteExistente.cantidad<cantidad) {
+        cout << "Cantidad insufciente. El lote " << loteExistente.codigo << "solo tiene" << loteExistente.cantidad << " sacos.\n";
+        return;
+    }
+    int nuevaCantidad=loteExistente.cantidad-cantidad;
+    inventario.actualizarCantidad(loteExistente.codigo, nuevaCantidad);
+
     Entrega entrega;
-    entrega.fecha =fecha;
+    entrega.fecha=fecha;
     entrega.cantidad= cantidad;
     fincas.registrarEntrega(nombre, entrega);
 
-    Lote nuevoLote;
-    nuevoLote.codigo= "ENT-" +fecha +"-"+ nombre; 
-    nuevoLote.finca= nombre;
-    nuevoLote.origen= "Cereza";
-    nuevoLote.cantidad=cantidad;
-    nuevoLote.fechaRecepcion=fecha;
-    nuevoLote.nivelMinimo = 10; 
-    inventario.insertarOrdenado(nuevoLote);
-
-    logAccion("Registro etrega", "Finca " + nombre + " entrego " +to_string(cantidad) +" sacos");
-    cout << "Entrega regstrada y lote agregado al invetario.\n";
+    logAccion("Registro entrega", "Finca " + nombre + " retiró " + to_string(cantidad) + " sacos del lote " + loteExistente.codigo + ". Nuevo stock: " + to_string(nuevaCantidad));
+    cout << "Entrega reistrada. Se retiraron " << cantidad << " sacos del lote " << loteExistente.codigo << ". Stock actual: " << nuevaCantidad << "\n";
 }
 
 // Procesar lote de la cola de despulpado
@@ -144,6 +165,70 @@ void visualizarInventario() {
 
 void consultarBitacora() {
     cout <<"\n---- BITACORA (mas reciente primero) ----\n";
+    bitacoraAdmin.mostrar();
+}
+
+bool login() {
+    string usuario;
+    string contrasenia;
+    cout << "Usuario: "; cin >> usuario;
+    cout << "Contraseña: "; cin >> contrasenia;
+    return (usuario=="operario" && contrasenia=="123") || (usuario =="planta" && contrasenia=="456");
+}
+
+void consultarDisponibilidad() {
+    int op;
+    cout <<"Buscar por: 1. Codigo  2. Finca\n Opcion: ";
+    cin >>op;
+    if (op==1) {
+        string cod;
+        cout<< "Codigo: "; cin >>cod;
+        Lote l;
+        if (inventario.buscarPorCodigo(cod, l)) {
+            cout << "Lote: "<< l.codigo << ", Finca: " << l.finca << ", Cantidad: " << l.cantidad << ", Estado: En bodega\n";
+        }
+        else {
+            cout << "Lote no encontrado.\n";
+        }
+    }
+    else if (op ==2) {
+        string fin;
+        cout << "Finca: "; cin >>fin;
+        Lote l;
+        if (inventario.buscarPorFinca(fin, l)) {
+            cout << "Lote: " << l.codigo << ", Cantidad: "<< l.cantidad << "\n";
+        }
+        else {
+            cout << "No hay lotes de esa finca.\n";
+        }
+    }
+    else {
+        cout << "Opcion invalida, ingrese otra.\n";
+    }
+}
+
+void enviarLoteACola() {
+    string codigo;
+    cout <<"Codigo del lote a enviar a despulpado: ";
+    cin >> codigo;
+    Lote l;
+    if (inventario.buscarPorCodigo(codigo, l)) {
+        if (l.cantidad >0) {
+            colaDespulpado.enqueue(l);
+            logAccion("Envio a cola", "Usuario envio lote " +codigo + "a despulpado");
+            cout << "Lote encolado correctamente.\n";
+        }
+        else {
+            cout << "El lote no tiene stock disponible.\n";
+        }
+    }
+    else {
+        cout << "Lote no existe.\n";
+    }
+}
+
+void verHistorialProcesados() {
+    cout << "\n----- HISTORIAL DE LOTES PROCESADOS (desde bitacora) -----\n";
     bitacoraAdmin.mostrar();
 }
 
@@ -203,8 +288,8 @@ void menuAdmin() {
 void menuUsuario() {
     int op;
     do {
-        cout << "\n===== MENU OPERARIO =====\n";
-        cout << "1. Consultar disponibiidad de lotes\n";
+        cout << "\n======= MENU OPERARIO =======\n";
+        cout << "1. Consultar disponiiidad de lotes\n";
         cout << "2. Enviar lote a cla de procesamiento\n";
         cout << "3. Visualizar hisorial de lotes procesados\n";
         cout << "4. Cerrar sesion\n";
@@ -230,35 +315,41 @@ void menuUsuario() {
 
         default: cout << "Opcion invalda.\n";
         }
-    } while (op != 4);
+    }
+    while (op!= 4);
 }
 
 int main() {
     int rol;
-    cout << "Bienvenido a EDD CofeTrack\n";
-    cout << "1. Administrador\n";
-    cout << "2. Usuario (operario/planta)\n";
-    cout << "Seleccione rol: ";
-    cin >> rol;
-    if (rol== 1) {
-        menuAdmin();
-    }
-    else if (rol==2) {
-        if (login()) {
-            menuUsuario();
+    do {
+        cout << "Bienvenido a EDD CofeTrack\n";
+        cout << "1. Administrador\n";
+        cout << "2. Usuario (operario/planta)\n";
+        cout << "3. Salir del programa\n";
+        cout << "Seleccione rol: ";
+        cin >> rol;
+
+        if (rol ==1) {
+            menuAdmin();
         }
-        else {
-            cout << "Credencales incorrectas.\n";
+        else if (rol== 2) {
+            if (login()) {
+                menuUsuario();
+            }
+            else {
+                cout <<"Credenciales incorretas.\n";
+            }
         }
-    }
-    else {
-        cout << "Rol invalido, seleccione una opcion valida.\n";
-    }
+        else if (rol== 3) {
+            cout << "Saliendo del programa...\n";
+            break;
+        }
+        else{
+            cout << "Rol invalido, ingrese uno valido.\n";
+        }
+    } 
+    while (rol!=3);
     return 0;
 }
-
-
-
-
 
 
