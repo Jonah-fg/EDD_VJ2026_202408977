@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="EDD_Proyecto1_fase2/EDD_Proyecto1_fase2.vcxproj" />
+</Solution>
