@@ -139,7 +139,11 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ArbolAVL.cpp" />
     <ClCompile Include="EDD_Proyecto1_fase2.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ArbolAVL.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
