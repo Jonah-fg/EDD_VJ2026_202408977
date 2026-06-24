@@ -3,6 +3,13 @@
 
 #include <string>
 #include <vector>
+#include <utility>
+
+// Estructura para guardar cada registro del historial de estados
+struct RegistroEstado {
+    std::string timestamp;
+    std::string estado;
+};
 
 struct Lote {
     std::string codigoLote;
@@ -13,7 +20,9 @@ struct Lote {
     std::string rutaTomada;
     float distanciaKm;
     std::string estadoActual;
-    std::vector<std::string> historialEstados;
+    std::vector<RegistroEstado> historialEstados;
+    std::string hashCertificado;
+    std::string fechaHoraEntrega;
 };
 
 struct NodoAVL {
@@ -46,6 +55,7 @@ public:
     ArbolAVL();
     ~ArbolAVL();
 
+    bool avanzarEstado(const std::string& codigoLote, const std::string& nuevoEstado, const std::string& timestamp);
     void insertarLote(const Lote& lote);
     Lote* buscarLote(const std::string& codigoLote);
     std::vector<Lote> listarTodosLosLotes() const;

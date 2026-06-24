@@ -30,7 +30,7 @@ NodoAVL* ArbolAVL::rotarDerecha(NodoAVL* y) {
     NodoAVL* T2=x->hijoDerecho;
 
     x->hijoDerecho = y;
-    y->hijoIzquierdo = T2;
+    y->hijoIzquierdo =T2;
 
     actualizarAltura(y);
     actualizarAltura(x);
@@ -117,6 +117,56 @@ void ArbolAVL::liberarArbol(NodoAVL* nodo) {
     liberarArbol(nodo->hijoIzquierdo);
     liberarArbol(nodo->hijoDerecho);
     delete nodo;
+}
+
+
+ArbolAVL::ArbolAVL() : raiz(nullptr) {}
+
+ArbolAVL::~ArbolAVL() {
+    liberarArbol(raiz);
+}
+
+void ArbolAVL::insertarLote(const Lote& lote) {
+    raiz =insertarRecursivo(raiz, lote);
+}
+
+Lote* ArbolAVL::buscarLote(const string& codigoLote) {
+    NodoAVL* nodo =buscarRecursivo(raiz, codigoLote);
+    return (nodo==nullptr) ? nullptr : &(nodo->lote);
+}
+
+vector<Lote> ArbolAVL::listarTodosLosLotes() const {
+    vector<Lote> resultado;
+    recorridoInOrden(raiz, resultado);
+    return resultado;
+}
+
+bool ArbolAVL::avanzarEstado(const string& codigoLote, const string& nuevoEstado, const string& timestamp) {
+    NodoAVL* nodo =buscarRecursivo(raiz, codigoLote);
+    if (nodo==nullptr) 
+        return false;
+
+    static const vector<string> secuenciaEstados ={"recibido", "en_cola", "procesado", "en_bodega", "certificado_emitido"};
+
+    int indiceActual =-1;
+    int indiceNuevo =-1;
+    for (size_t i =0; i<secuenciaEstados.size(); ++i) {
+        if (secuenciaEstados[i]==nodo->lote.estadoActual)
+            indiceActual= i;
+
+        if (secuenciaEstados[i]==nuevoEstado) 
+            indiceNuevo=i;
+    }
+    if (indiceActual ==-1|| indiceNuevo ==-1 || indiceNuevo<=indiceActual) {
+        return false;
+    }
+
+    nodo->lote.estadoActual =nuevoEstado;
+    RegistroEstado registro;
+    registro.timestamp=timestamp;
+    registro.estado=nuevoEstado;
+    nodo->lote.historialEstados.push_back(registro);
+    return true;
 }
 
 
