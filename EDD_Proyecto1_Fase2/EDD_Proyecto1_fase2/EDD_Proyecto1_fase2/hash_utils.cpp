@@ -4,7 +4,7 @@
 
 using namespace std;
 
-// Función de avalancha (tomada del auxiliar) para mezclar los bits finales
+// Función de avalancha (tomada del auxiliar)
 static uint64_t mezclarBits(uint64_t hash) {
     hash ^= hash>>33;
     hash *= 0xff51afd7ed558ccdULL;
@@ -16,22 +16,20 @@ static uint64_t mezclarBits(uint64_t hash) {
 
 // Algoritmo FNV-1a de 64 bits con avalancha al final
 static uint64_t fnv1a_64_avalancha(const string& entrada) {
-    uint64_t hash = 14695981039346656037ULL; // offset basis
-    const uint64_t primo = 1099511628211ULL;
+    uint64_t hash=14695981039346656037ULL;
+    const uint64_t primo= 1099511628211ULL;
     for (char c : entrada) {
-        hash ^= static_cast<uint64_t>(c);
-        hash *= primo;
+        hash^= static_cast<uint64_t>(c);
+        hash*=primo;
     }
     return mezclarBits(hash);
 }
 
 string calcularHash(const string& entrada) {
-    // Generamos dos valores de 64 bits con diferentes "saltos" para obtener 128 bits
-    uint64_t parte1 = fnv1a_64_avalancha(entrada);
-    uint64_t parte2 = fnv1a_64_avalancha(entrada + "EDD_CoffeeTrack_Salt_2026");
+    uint64_t parte1= fnv1a_64_avalancha(entrada);
+    uint64_t parte2=fnv1a_64_avalancha(entrada + "EDD_CoffeeTrack_Salt_2026");
 
     stringstream resultado;
-    resultado << hex << setw(16) << setfill('0') << parte1
-        << hex << setw(16) << setfill('0') << parte2;
+    resultado << hex << setw(16) << setfill('0') << parte1<< hex << setw(16) << setfill('0') << parte2;
     return resultado.str(); // 32 caracteres hexadecimales
 }

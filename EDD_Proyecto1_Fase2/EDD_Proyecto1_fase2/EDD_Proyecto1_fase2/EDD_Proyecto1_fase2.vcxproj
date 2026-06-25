@@ -142,11 +142,13 @@
     <ClCompile Include="ArbolAVL.cpp" />
     <ClCompile Include="Arbol_b.cpp" />
     <ClCompile Include="EDD_Proyecto1_fase2.cpp" />
+    <ClCompile Include="Encryption.cpp" />
     <ClCompile Include="hash_utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ArbolAVL.h" />
     <ClInclude Include="Arbol_b.h" />
+    <ClInclude Include="Encryption.h" />
     <ClInclude Include="hash_utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
