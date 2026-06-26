@@ -60,9 +60,6 @@ public:
     Lote* buscarLote(const std::string& codigoLote);
     std::vector<Lote> listarTodosLosLotes() const;
 
-    bool avanzarEstado(const std::string& codigoLote,
-        const std::string& nuevoEstado,
-        const std::string& timestamp);
 };
 
 #endif
