@@ -5,6 +5,7 @@
 #include "Arbol_b.h"
 #include "hash_utils.h"
 #include "Encryption.h"
+#include "Generador_certificados.h"
 
 using namespace std;
 
@@ -17,7 +18,7 @@ int main() {
 
     // PRUEBA: HASH_UTILS
     separador();
-    cout << "PRUEBA 1: HASH_UTILS\n";
+    cout << "PRUEBA: HASH_UTILS\n";
 
     string texto1 ="L001";
     string texto2="L002";
@@ -31,10 +32,67 @@ int main() {
     string hash1_bis=calcularHash(texto1);
     cout <<"¿Determinista? "<< (hash1 == hash1_bis ? "SÍ" : "NO") <<"\n";
 
+	//Prueba : ENCRYPTION
+	separador();
+	cout << "PRUEBA 2: ENCRYPTION (XOR)\n";
+	string original="Este es un texto de prueba para encriptar.";
+	string encriptado=Encryption::encriptar(original);
+	string desencriptado= Encryption::desencriptar(encriptado);
+	cout << "Texto original: "<< original << "\n";
+	cout << "Texto encriptao: "<< encriptado << "\n";
+	cout << "Texto desencriptado: " << desencriptado << "\n";
+	cout << "¿Coincide con el original? " <<(original==desencriptado ? "SÍ" : "NO") << "\n"; 
 
- //PRUEBA: ÁRBOL AVL (solo)
+
     separador();
-    cout << "PRUEBA: ÁRBOL AVL (inserción, búsqueda, listado, cambio de estado)\n";
+	//PRUEBA : ARBOL MERKLE
+    cout << "--- ARBOL DE MERKLE ---\n";
+    ArbolMerkle merkle;
+    vector<string> hashes= {calcularHash("cert1"), calcularHash("cert2"), calcularHash("cert3")};
+
+    merkle.construir(hashes);
+    cout <<"Hojas: " << hashes.size()<< "\n";
+    cout << "Raiz: " <<merkle.obtenerHashRaiz() << "\n";
+    // Agregar una hoja más
+    merkle.agregarHoja(calcularHash("cert4"));
+    cout << "Despues de agregar cert4, raiz: "<< merkle.obtenerHashRaiz() << "\n";
+    cout <<"Verificacion de intgrdad de 'cert3': "<<(merkle.verificarIntegridad(calcularHash("cert3")) ? "VALIDO" : "INVALIDO") << "\n\n";
+
+
+    separador();
+	//PRUEBA: Certificado y encriptación
+    cout << "--- GENERADOR DE CERTIFICADOS ---\n";
+    Lote lotePrueba;
+    lotePrueba.codigoLote = "L001";
+    lotePrueba.codigoFinca = "F001";
+    lotePrueba.nombreFinca ="Finca La Hermosa";
+    lotePrueba.sacos =45;
+    lotePrueba.tipoCafe ="Bourbon";
+    lotePrueba.estadoActual="recibido";
+    lotePrueba.fechaHoraEntrega = "2026-06-15 10:00:00";
+    lotePrueba.rutaTomada = "F001 -> BENEFICIO";
+    lotePrueba.distanciaKm =127.0;
+    lotePrueba.hashCertificado = "";
+
+    try {
+        // Necesitamos un objeto ArbolMerkle para pasar a la función (lo reutilizamos)
+        string hashGenerado = GeneradorCertificados::generarYGuardarCertificado(lotePrueba, merkle);
+        cout << "Certificado generado exitosamente.\n";
+        cout << "Hash de cntenido: "<< hashGenerado << "\n";
+        cout << "Hash guardado en el lote: " << lotePrueba.hashCertificado << "\n";
+        cout << "Estado del lote: " << lotePrueba.estadoActual << "\n";
+
+        cout << "Hojas en Merkle despus del certificado: " << merkle.cantidadHojas() << "\n";
+
+    }
+    catch (const exception& e) {
+        cout << "Error al genrar certificado: "<< e.what()<< "\n";
+    }
+
+
+    //PRUEBA: ÁRBOL AVL (solo)
+    separador();
+    cout << "PRUEBA: ÁRBOL AVL (insecion, busqueda, listado, camio de estao)\n";
 
     ArbolAVL avl;
 
@@ -59,7 +117,7 @@ int main() {
     Lote l3;
     l3.codigoLote = "L005";
     l3.codigoFinca= "F003";
-    l3.nombreFinca="Finca Las Nubes";
+    l3.nombreFinca="Finca Las Nbes";
     l3.sacos = 55;
     l3.tipoCafe = "Gesha";
     l3.estadoActual="recibido";
@@ -75,31 +133,20 @@ int main() {
         cout << "  "<< l.codigoLote << " | " <<l.nombreFinca << " | " << l.sacos << " sacos | Estado: " << l.estadoActual<<"\n";
     }
 
-    // Buscar un lote
     Lote* encontrado=avl.buscarLote("L003");
     if (encontrado) {
-        cout << "\nBúsqueda de L003: " << encontrado->nombreFinca << " (encontrado ✓)\n";
+        cout << "\nBúsqeda de L003: " << encontrado->nombreFinca << " (encontrado ✓)\n";
     }
     else {
-        cout << "\nBúsqueda de L003: NO encontrado ✗\n";
+        cout << "\nBúsqueda de L003: no encontrado ✗\n";
     }
 
-    // Avanzar estado de L001
     bool ok=avl.avanzarEstado("L001", "en_cola", "2026-06-15 12:00:00");
     if (ok){
         cout << "\nEstado de L001 cambiado a 'en_cola' ✓\n";
     }
     else{
         cout << "\nError al cambiar estado de L001 ✗\n";
-    }
-
-    // Mostrar historial de L001
-    Lote* l001=avl.buscarLote("L001");
-    if (l001){
-        cout << "Historial de L001:\n";
-        for (const auto& reg : l001->historialEstados) {
-            cout << "  " <<reg.timestamp <<" -> "<< reg.estado << "\n";
-        }
     }
 
     return 0;
