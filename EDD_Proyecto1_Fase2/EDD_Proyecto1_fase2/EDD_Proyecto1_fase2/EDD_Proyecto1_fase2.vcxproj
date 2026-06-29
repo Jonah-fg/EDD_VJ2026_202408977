@@ -142,8 +142,10 @@
     <ClCompile Include="ArbolAVL.cpp" />
     <ClCompile Include="Arbol_b.cpp" />
     <ClCompile Include="Arbol_merkle.cpp" />
+    <ClCompile Include="CargadorJSON.cpp" />
     <ClCompile Include="EDD_Proyecto1_fase2.cpp" />
     <ClCompile Include="Encryption.cpp" />
+    <ClCompile Include="FincaManager.cpp" />
     <ClCompile Include="Generador_certificados.cpp" />
     <ClCompile Include="hash_utils.cpp" />
   </ItemGroup>
@@ -151,7 +153,9 @@
     <ClInclude Include="ArbolAVL.h" />
     <ClInclude Include="Arbol_b.h" />
     <ClInclude Include="Arbol_merkle.h" />
+    <ClInclude Include="CargadorJSON.h" />
     <ClInclude Include="Encryption.h" />
+    <ClInclude Include="FincaManager.h" />
     <ClInclude Include="Generador_certificados.h" />
     <ClInclude Include="hash_utils.h" />
   </ItemGroup>

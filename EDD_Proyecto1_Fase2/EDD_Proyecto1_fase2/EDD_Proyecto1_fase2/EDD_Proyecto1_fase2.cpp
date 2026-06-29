@@ -1,153 +1,371 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include "ArbolAVL.h"
+#include <limits>
+#include <fstream>
+#include <cstdlib>
 #include "Arbol_b.h"
-#include "hash_utils.h"
-#include "Encryption.h"
+#include "ArbolAVL.h"
+#include "Arbol_merkle.h"
 #include "Generador_certificados.h"
+#include "FincaManager.h"
+#include "CargadorJSON.h"      
+#include "hash_utils.h"
+#include "utils.h"
 
 using namespace std;
 
-void separador() {
-    cout<<"\n========================================\n";
-}
+
+// ============================
+// Variables globales
+// ============================
+ArbolB arbolB;
+ArbolMerkle arbolMerkle;
+FincaManager fincaManager;
+
+// ============================
+// Prototipos de funciones del menú
+// ============================
+void menuGestionDatos();
+void menuConsultas();
+void menuRutas();
+void menuCertificados();
+void menuMerkle();
+void menuReportes();
+
+void registrarEntregaManual();
+void buscarPorFecha();
+void buscarLote();
+void listarFechas();
+void trazabilidadLote();
+void avanzarEstadoLote();
+void registrarFinca();
+void listarFincas();
+void generarCertificadoIndividual();
+void generarCertificadosMasivos();
+void mostrarCertificado();
+void construirMerkle();
+void verificarCertificado();
+void mostrarHashRaiz();
+
+// Reportes Graphviz 
+void reporteArbolB();
+void reporteAVL();
+void reporteMerkle();
+void reporteTrazabilidad();
+
 
 int main() {
-    cout << "===== PRUEBAS DEL SISTEMA EDD COFFEETRACK =====\n";
+    int opcion;
 
-    // PRUEBA: HASH_UTILS
-    separador();
-    cout << "PRUEBA: HASH_UTILS\n";
+    do {
+        cout << "\n===== EDD COFFEETRACK – FASE 2 =====\n";
+        cout << "MENÚ PRINCIPAL – ADMINISTRADOR\n";
+        cout << "1. Gestión de Datos\n";
+        cout << "2. Consltas y Trazabilidad\n";
+        cout << "3. Rutas\n";
+        cout << "4. Certificados\n";
+        cout << "5. Árbol de Merkle\n";
+        cout << "6. Reportes Graphviz\n";
+        cout << "0. Salir\n";
+        cout << "Seleccione: ";
+        cin >> opcion;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-    string texto1 ="L001";
-    string texto2="L002";
-    string hash1 =calcularHash(texto1);
-    string hash2=calcularHash(texto2);
+        switch (opcion) {
+        case 1: menuGestionDatos();
+            break;
 
-    cout << "Hash de '" << texto1 << "': " <<hash1 << "\n";
-    cout << "Hash de '" << texto2 << "': " <<hash2 << "\n";
-    cout << "Longitud del hash: " <<hash1.length()<< "(debe ser 32)\n";
+        case 2: menuConsultas(); 
+            break;
 
-    string hash1_bis=calcularHash(texto1);
-    cout <<"¿Determinista? "<< (hash1 == hash1_bis ? "SÍ" : "NO") <<"\n";
+        case 3: menuRutas();
+            break;
 
-	//Prueba : ENCRYPTION
-	separador();
-	cout << "PRUEBA 2: ENCRYPTION (XOR)\n";
-	string original="Este es un texto de prueba para encriptar.";
-	string encriptado=Encryption::encriptar(original);
-	string desencriptado= Encryption::desencriptar(encriptado);
-	cout << "Texto original: "<< original << "\n";
-	cout << "Texto encriptao: "<< encriptado << "\n";
-	cout << "Texto desencriptado: " << desencriptado << "\n";
-	cout << "¿Coincide con el original? " <<(original==desencriptado ? "SÍ" : "NO") << "\n"; 
+        case 4: menuCertificados();
+            break;
 
+        case 5: menuMerkle();
+            break;
 
-    separador();
-	//PRUEBA : ARBOL MERKLE
-    cout << "--- ARBOL DE MERKLE ---\n";
-    ArbolMerkle merkle;
-    vector<string> hashes= {calcularHash("cert1"), calcularHash("cert2"), calcularHash("cert3")};
+        case 6: menuReportes();
+            break;
 
-    merkle.construir(hashes);
-    cout <<"Hojas: " << hashes.size()<< "\n";
-    cout << "Raiz: " <<merkle.obtenerHashRaiz() << "\n";
-    // Agregar una hoja más
-    merkle.agregarHoja(calcularHash("cert4"));
-    cout << "Despues de agregar cert4, raiz: "<< merkle.obtenerHashRaiz() << "\n";
-    cout <<"Verificacion de intgrdad de 'cert3': "<<(merkle.verificarIntegridad(calcularHash("cert3")) ? "VALIDO" : "INVALIDO") << "\n\n";
-
-
-    separador();
-	//PRUEBA: Certificado y encriptación
-    cout << "--- GENERADOR DE CERTIFICADOS ---\n";
-    Lote lotePrueba;
-    lotePrueba.codigoLote = "L001";
-    lotePrueba.codigoFinca = "F001";
-    lotePrueba.nombreFinca ="Finca La Hermosa";
-    lotePrueba.sacos =45;
-    lotePrueba.tipoCafe ="Bourbon";
-    lotePrueba.estadoActual="recibido";
-    lotePrueba.fechaHoraEntrega = "2026-06-15 10:00:00";
-    lotePrueba.rutaTomada = "F001 -> BENEFICIO";
-    lotePrueba.distanciaKm =127.0;
-    lotePrueba.hashCertificado = "";
-
-    try {
-        // Necesitamos un objeto ArbolMerkle para pasar a la función (lo reutilizamos)
-        string hashGenerado = GeneradorCertificados::generarYGuardarCertificado(lotePrueba, merkle);
-        cout << "Certificado generado exitosamente.\n";
-        cout << "Hash de cntenido: "<< hashGenerado << "\n";
-        cout << "Hash guardado en el lote: " << lotePrueba.hashCertificado << "\n";
-        cout << "Estado del lote: " << lotePrueba.estadoActual << "\n";
-
-        cout << "Hojas en Merkle despus del certificado: " << merkle.cantidadHojas() << "\n";
-
-    }
-    catch (const exception& e) {
-        cout << "Error al genrar certificado: "<< e.what()<< "\n";
-    }
-
-
-    //PRUEBA: ÁRBOL AVL (solo)
-    separador();
-    cout << "PRUEBA: ÁRBOL AVL (insecion, busqueda, listado, camio de estao)\n";
-
-    ArbolAVL avl;
-
-    Lote l1;
-    l1.codigoLote = "L003";
-    l1.codigoFinca ="F001";
-    l1.nombreFinca ="Finca La Hermosa";
-    l1.sacos = 45;
-    l1.tipoCafe = "Bourbon";
-    l1.estadoActual="recibido";
-    l1.fechaHoraEntrega = "2026-06-15 10:00:00";
-
-    Lote l2;
-    l2.codigoLote = "L001";
-    l2.codigoFinca = "F002";
-    l2.nombreFinca ="Finca El Roble";
-    l2.sacos = 30;
-    l2.tipoCafe = "Caturra";
-    l2.estadoActual= "recibido";
-    l2.fechaHoraEntrega= "2026-06-15 11:00:00";
-
-    Lote l3;
-    l3.codigoLote = "L005";
-    l3.codigoFinca= "F003";
-    l3.nombreFinca="Finca Las Nbes";
-    l3.sacos = 55;
-    l3.tipoCafe = "Gesha";
-    l3.estadoActual="recibido";
-    l3.fechaHoraEntrega= "2026-06-20 09:00:00";
-
-    avl.insertarLote(l1);
-    avl.insertarLote(l2);
-    avl.insertarLote(l3);
-
-    cout << "Lotes insertados. Listado in-order (ordenado por código):\n";
-    vector<Lote> lotes=avl.listarTodosLosLotes();
-    for (const auto& l : lotes) {
-        cout << "  "<< l.codigoLote << " | " <<l.nombreFinca << " | " << l.sacos << " sacos | Estado: " << l.estadoActual<<"\n";
-    }
-
-    Lote* encontrado=avl.buscarLote("L003");
-    if (encontrado) {
-        cout << "\nBúsqeda de L003: " << encontrado->nombreFinca << " (encontrado ✓)\n";
-    }
-    else {
-        cout << "\nBúsqueda de L003: no encontrado ✗\n";
-    }
-
-    bool ok=avl.avanzarEstado("L001", "en_cola", "2026-06-15 12:00:00");
-    if (ok){
-        cout << "\nEstado de L001 cambiado a 'en_cola' ✓\n";
-    }
-    else{
-        cout << "\nError al cambiar estado de L001 ✗\n";
-    }
+        case 0:
+            cout << "Saliendo del programa :)\n";
+            break;
+        default:
+            cout << "Opción inválida, introduzca uno valido.\n";
+        }
+    } while (opcion!= 0);
 
     return 0;
 }
+
+
+// Submenus
+void menuGestionDatos() {
+    int sub;
+    cout << "\n--- Gestión de Datos ---\n";
+    cout << "1. Carga masiva desde JSON\n";
+    cout << "2. Registrar entrega manualmente\n";
+    cout << "Seleccione: ";
+    cin >> sub;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    if (sub==1) {
+        string archivo;
+        cout << "Ingrese ruta del archivo JSON: ";
+        getline(cin, archivo);
+        CargaJSON::cargar(archivo, fincaManager, arbolB);
+    }
+    else if (sub==2) {
+        registrarEntregaManual();
+    }
+    else {
+        cout << "Opción inválida.\n";
+    }
+}
+
+void menuConsultas() {
+    int sub;
+    cout << "\n--__- Consultas y Trazabilidad --__-\n";
+    cout << "2.1 Buscar entregas por fecha\n";
+    cout << "2.2 Buscar lote específico por código\n";
+    cout << "2.3 Listar todas las fechas registradas\n";
+    cout << "2.4 Trazabilidad completa de un lote\n";
+    cout << "2.5 Avanzar estado de un lote\n";
+    cout << "Seleccione: ";
+    cin >> sub;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    switch (sub) {
+    case 1: buscarPorFecha();
+        break;
+
+    case 2: buscarLote();
+        break;
+
+    case 3: listarFechas();
+        break;
+
+    case 4: trazabilidadLote();
+        break;
+
+    case 5: avanzarEstadoLote();
+        break;
+
+    default: cout << "Opción inválida.\n";
+    }
+}
+
+void menuRutas() {
+    int sub;
+    cout << "\n--__- Rutas -__--\n";
+    cout << "3.1 Registrar nueva finca y sus conexiones\n";
+    cout << "3.2 Calcular ruta óptima desde una finca al beneficio (Dijkstra)\n";
+    cout << "3.3 Ver todas las fincas y conexiones registradas\n";
+    cout << "Seleccione: ";
+    cin >> sub;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    switch (sub) {
+    case 1: registrarFinca(); 
+        break;
+
+    case 2:
+        cout <<"Opción no implementada (Dijkstra omitido).\n";
+        break;
+    case 3: listarFincas(); 
+        break;
+
+    default: cout<< "Opción inválida.\n";
+    }
+}
+
+void menuCertificados() {
+    int sub;
+    cout << "\n--- Certificados ---\n";
+    cout << "4.1 Generar certificado encriptado de un lote\n";
+    cout << "4.2 Generar certificados masivos de una fecha completa\n";
+    cout << "4.3 Mostrar un certificado desencriptado en específico\n";
+    cout << "Seleccione: ";
+    cin >> sub;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    switch (sub) {
+    case 1: generarCertificadoIndividual();
+        break;
+
+    case 2: generarCertificadosMasivos();
+        break;
+
+    case 3: mostrarCertificado(); 
+        break;
+
+    default: cout << "Opción inválida.\n";
+    }
+}
+
+void menuMerkle() {
+    int sub;
+    cout << "\n--- Árbol de Merkle ---\n";
+    cout << "5.1 Construir / actualizar árbol con certificados actuales\n";
+    cout << "5.2 Verificar si un certificado fue alterado\n";
+    cout << "5.3 Mostrar hash raíz actual\n";
+    cout << "Seleccione: ";
+    cin >> sub;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    switch (sub) {
+    case 1: construirMerkle();
+        break;
+
+    case 2: verificarCertificado();
+        break;
+
+    case 3: mostrarHashRaiz(); 
+        break;
+
+    default: cout << "Opción inválida.\n";
+    }
+}
+
+void menuReportes() {
+    int sub;
+    cout << "\n----- Reportes Graphviz -----\n";
+    cout << "6.1 Graficar Árbol B\n";
+    cout << "6.2 Graficar AVL de una fecha específica\n";
+    cout << "6.3 Graficar grao de rutas (no implementado)\n";
+    cout << "6.4 Graficar Árbol de Merkle\n";
+    cout << "6.5 Graficar cadena de trazabilidad de un lote\n";
+    cout << "Seleccione: ";
+    cin >> sub;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    switch (sub) {
+    case 1: reporteArbolB(); 
+        break;
+
+    case 2: reporteAVL();
+        break;
+
+    case 3: cout << "No implementado (grafo de rutas omitido).\n";
+        break;
+
+    case 4: reporteMerkle();
+        break;
+
+    case 5: reporteTrazabilidad(); 
+        break;
+
+    default: cout << "Opción inválida.\n";
+    }
+}
+
+
+// Funciones del menu
+
+// --- 1.2 Registrar entrega manual ---
+void registrarEntregaManual() {
+    string fecha, codigoLote, fincaCod, tipoCafe;
+    int sacos;
+
+    cout <<"Fecha (YYYY-MM-DD HH:MM:SS): ";
+    getline(cin, fecha);
+    cout<< "Código de lote: ";
+    getline(cin, codigoLote);
+    cout <<"Código de finca: ";
+    getline(cin, fincaCod);
+    cout <<"Sacos: ";
+    cin >> sacos;
+    cin.ignore();
+    cout << "Tipo de café: ";
+    getline(cin, tipoCafe);
+
+    if (!fincaManager.existeFinca(fincaCod)) {
+        cout << "Error: finca no registrada.\n";
+        return;
+    }
+
+    Finca* f=fincaManager.buscarFinca(fincaCod);
+    Lote lote;
+    lote.codigoLote=codigoLote;
+    lote.codigoFinca= fincaCod;
+    lote.nombreFinca =f ? f->nombre : "";
+    lote.sacos=sacos;
+    lote.tipoCafe=tipoCafe;
+    lote.estadoActual = "recibido";
+    lote.rutaTomada ="N/A";
+    lote.distanciaKm= 0.0;
+    lote.fechaHoraEntrega = fecha;
+
+    RegistroEstado reg;
+    reg.timestamp=fecha;
+    reg.estado ="recibido";
+    lote.historialEstados.push_back(reg);
+
+    string fechaSolo=fecha.substr(0, 10);
+    ArbolAVL* avl=arbolB.obtenerArbolAVL(fechaSolo);
+    if (!avl) {
+        avl = new ArbolAVL();
+        avl->insertarLote(lote);
+        arbolB.insertarFecha(fechaSolo, avl);
+    }
+    else {
+        avl->insertarLote(lote);
+    }
+    cout << "Entrega registrada exitoamente.\n";
+}
+
+// ----- 2.1 Buscar por fecha -----
+void buscarPorFecha() {
+    string fecha;
+    cout << "Inrese fecha (YYYY-MM-DD): ";
+    getline(cin, fecha);
+    ArbolAVL* avl =arbolB.obtenerArbolAVL(fecha);
+    if (!avl) {
+        cout << "No hay enregas en esa fecha.\n";
+        return;
+    }
+    vector<Lote> lotes=avl->listarTodosLosLotes();
+    cout << "Lotes del " << fecha << ":\n";
+    for (const auto& l : lotes) {
+        cout << " Código: "<< l.codigoLote << ", Finca: "<< l.nombreFinca<< ", Sacos: "<< l.sacos<< ", Estado: " << l.estadoActual << "\n";
+    }
+}
+
+// ----- 2.2 Buscar lote por código -----
+void buscarLote() {
+    string codigo;
+    cout <<"Ingrese código de lote: ";
+    getline(cin, codigo);
+    vector<string> fechas=arbolB.listarTodasLasFechas();
+    for (const string& f : fechas){
+        ArbolAVL* avl= arbolB.obtenerArbolAVL(f);
+        if (avl) {
+            Lote* l=avl->buscarLote(codigo);
+            if (l){
+                cout << "Lote encontrado en fecha " << f << "\n";
+                cout << "  Finca: "<< l->nombreFinca << ", Sacos: " << l->sacos<< ", Estado: " << l->estadoActual << "\n";
+                return;
+            }
+        }
+    }
+    cout << "Lte no encontrado.\n";
+}
+
+// ----- 2.3 Listar fechas -----
+void listarFechas() {
+    vector<string> fechas=arbolB.listarTodasLasFechas();
+    if (fechas.empty()){
+        cout << "No hay fechas registradas.\n";
+        return;
+    }
+    cout <<"Fechas registradas:\n";
+    for (const auto& f: fechas) {
+        cout<<"  "<< f << "\n";
+    }
+}
+
+
