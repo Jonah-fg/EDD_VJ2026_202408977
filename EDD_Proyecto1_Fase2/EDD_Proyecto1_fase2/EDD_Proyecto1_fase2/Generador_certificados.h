@@ -4,6 +4,7 @@
 #include <string>
 #include "ArbolAVL.h" 
 #include "Arbol_merkle.h"
+#include "Arbol_b.h"
 
 class GeneradorCertificados {
 private:
@@ -16,6 +17,9 @@ private:
 public:
     static std::string generarYGuardarCertificado(Lote& lote, ArbolMerkle& merkle);
     static std::string leerYDesencriptarCertificado(const std::string& nombreArchivo);
+    static std::string generarYGuardarCertificadoSinMerkle(Lote& lote);
+    static void generarCertificadosMasivos(ArbolB& arbolB, const std::string& fecha, ArbolMerkle& merkle);
+    static void reconstruirMerkleDesdeArbolB(ArbolB& arbolB, ArbolMerkle& merkle);
 };
 
 #endif

@@ -10,6 +10,7 @@
 #ifdef _WIN32
 #include <direct.h>
 #endif
+#include "Utils.h"
 using namespace std;
 
 const string GeneradorCertificados::CARPETA_SALIDA = "certificados";
@@ -66,6 +67,83 @@ string GeneradorCertificados::generarYGuardarCertificado(Lote& lote, ArbolMerkle
     merkle.agregarHoja(hashContenido);
     cout <<"Certificado generado:" << nombreArchivo << "\n";
     return hashContenido;
+}
+
+string GeneradorCertificados::generarYGuardarCertificadoSinMerkle(Lote& lote) {
+    asegurarCarpeta();
+
+    string contenido = construirContenido(lote);
+    string hashContenido =calcularHash(contenido);
+    lote.hashCertificado =hashContenido;
+
+    string hashNombre =calcularHash(lote.codigoLote);
+    string contenidoEncriptado= Encryption::encriptar(contenido);
+    string nombreArchivo =hashNombre + ".txt";
+    string rutaCompleta=CARPETA_SALIDA + "/" + nombreArchivo;
+
+    ofstream archivo(rutaCompleta, ios::binary);
+    if (!archivo.is_open()) {
+        throw runtime_error("No se pudo crear elarchivo: " + rutaCompleta);
+    }
+    archivo.write(contenidoEncriptado.data(), contenidoEncriptado.size());
+    archivo.close();
+
+    cout << "Certificado generao (sin Merkle): "<< nombreArchivo << "\n";
+    return hashContenido;
+}
+
+
+void GeneradorCertificados::generarCertificadosMasivos(ArbolB& arbolB, const string& fecha, ArbolMerkle& merkle) {
+    ArbolAVL* avl = arbolB.obtenerArbolAVL(fecha);
+    if (!avl) {
+        cout << "No hay enregas para la fecha " << fecha << endl;
+        return;
+    }
+
+    vector<Lote> lotes=avl->listarTodosLosLotes();
+    if (lotes.empty()) {
+        cout << "No hay lotes en esa fecha." << endl;
+        return;
+    }
+
+    // Generar certificado para cada lote (sin actualizar Merkle)
+    for (auto& lote : lotes) {
+        Lote* lotePtr = avl->buscarLote(lote.codigoLote);
+        if (lotePtr) {
+            // Avanzar estado a certificado_emitido si no lo está
+            if (lotePtr->estadoActual != "certificado_emitido") {
+                lotePtr->estadoActual = "certificado_emitido";
+                RegistroEstado reg;
+                reg.timestamp =obtenerTimestampActual();
+                reg.estado = "certificado_emitido";
+                lotePtr->historialEstados.push_back(reg);
+            }
+            generarYGuardarCertificadoSinMerkle(*lotePtr);
+        }
+    }
+	// Reconstreuccion del Merkle una sola vez al final 
+    reconstruirMerkleDesdeArbolB(arbolB, merkle);
+    cout << "Certificaos masivos generados para la fecha " << fecha << endl;
+}
+
+
+void GeneradorCertificados::reconstruirMerkleDesdeArbolB(ArbolB& arbolB, ArbolMerkle& merkle) {
+    vector<string> hashes;
+    vector<string> fechas=arbolB.listarTodasLasFechas();
+    for (const string& fecha : fechas) {
+        ArbolAVL* avl=arbolB.obtenerArbolAVL(fecha);
+        if (avl) {
+            vector<Lote> lotes = avl->listarTodosLosLotes();
+            for (const Lote& l : lotes) {
+                if (!l.hashCertificado.empty()) {
+                    hashes.push_back(l.hashCertificado);
+                }
+            }
+        }
+    }
+
+    merkle.construir(hashes);
+    cout << "Árbol de Merkle reconstruido con "<< hashes.size() <<" certificados." << endl;
 }
 
 string GeneradorCertificados::leerYDesencriptarCertificado(const string& nombreArchivo) {
