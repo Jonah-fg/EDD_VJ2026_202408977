@@ -59,6 +59,7 @@ public:
     void insertarLote(const Lote& lote);
     Lote* buscarLote(const std::string& codigoLote);
     std::vector<Lote> listarTodosLosLotes() const;
+    NodoAVL* getRaiz() const { return raiz; }
 
 };
 

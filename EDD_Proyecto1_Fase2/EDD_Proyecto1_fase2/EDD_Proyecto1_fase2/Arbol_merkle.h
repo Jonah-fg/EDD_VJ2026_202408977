@@ -33,6 +33,9 @@ public:
     size_t cantidadHojas() const {
         return hojas.size();
     }
+    NodoMerkle* getRaiz() const {return raiz;}
+    int obtenerPosicionHoja(const std::string& hash) const;
+    int obtenerNumeroHojas() const { return hojas.size();}
 };
 
 #endif

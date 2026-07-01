@@ -11,30 +11,33 @@ NodoB::NodoB(bool hoja) : numeroClaves(0), esHoja(hoja) {
 }
 
 void ArbolB::dividirHijo(NodoB* padre, int indice) {
-    NodoB* hijo= padre->hijos[indice];
-    NodoB* nuevoNodo= new NodoB(hijo->esHoja);
+    NodoB* hijo =padre->hijos[indice];
+    NodoB* nuevoNodo=new NodoB(hijo->esHoja);
 
-    int mitad=3;
-    nuevoNodo->numeroClaves= 3;
-    for (int i=0; i<3; ++i) {
-        nuevoNodo->fechas[i]=hijo->fechas[i +mitad +1];
-        nuevoNodo->arbolesAVL[i]= hijo->arbolesAVL[i+ mitad +1];
+    int mitad = 3;
+
+    nuevoNodo->numeroClaves=2;
+    for (int i=0; i<2; ++i) {
+        nuevoNodo->fechas[i] =hijo->fechas[i + mitad+1];
+        nuevoNodo->arbolesAVL[i]=hijo->arbolesAVL[i +mitad+ 1];
     }
     if (!hijo->esHoja) {
-        for (int i=0; i<4; ++i) {
-            nuevoNodo->hijos[i]=hijo->hijos[i +mitad+ 1];
+        for (int i = 0; i <3; ++i) {
+            nuevoNodo->hijos[i]=hijo->hijos[i + mitad + 1];
         }
     }
-    hijo->numeroClaves= 2;
 
-    for (int i=padre->numeroClaves; i>indice; --i) {
-        padre->fechas[i] =padre->fechas[i-1];
-        padre->arbolesAVL[i]= padre->arbolesAVL[i-1];
-        padre->hijos[i +1] =padre->hijos[i];
+    hijo->numeroClaves = 3;
+
+    for (int i = padre->numeroClaves; i>indice; --i) {
+        padre->fechas[i]=padre->fechas[i- 1];
+        padre->arbolesAVL[i]=padre->arbolesAVL[i - 1];
+        padre->hijos[i + 1] =padre->hijos[i];
     }
-    padre->fechas[indice]= hijo->fechas[2];
-    padre->arbolesAVL[indice]= hijo->arbolesAVL[2];
-    padre->hijos[indice + 1]=nuevoNodo;
+
+    padre->fechas[indice] = hijo->fechas[mitad];
+    padre->arbolesAVL[indice] = hijo->arbolesAVL[mitad];
+    padre->hijos[indice + 1] = nuevoNodo;
     padre->numeroClaves++;
 }
 
@@ -116,7 +119,7 @@ ArbolB::~ArbolB() {
 }
 
 void ArbolB::insertarFecha(const string& fecha, ArbolAVL* arbolAVL) {
-    if (raiz == nullptr) {
+    if (raiz==nullptr) {
         raiz = new NodoB(true);
         raiz->fechas[0]=fecha;
         raiz->arbolesAVL[0]= arbolAVL;
@@ -139,6 +142,5 @@ ArbolAVL* ArbolB::obtenerArbolAVL(const string& fecha) {
 vector<string> ArbolB::listarTodasLasFechas() {
     vector<string> fechas;
     if (raiz) recorridoInOrden(raiz, fechas);
-    return fechas;
+        return fechas;
 }
-

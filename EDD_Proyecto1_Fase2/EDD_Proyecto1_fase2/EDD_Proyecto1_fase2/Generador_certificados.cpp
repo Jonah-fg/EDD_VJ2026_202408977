@@ -1,6 +1,9 @@
 #include "Generador_certificados.h"
 #include "hash_utils.h"
 #include "Encryption.h"
+#include "Arbol_b.h"
+#include "ArbolAVL.h"
+#include "Arbol_merkle.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -94,7 +97,7 @@ string GeneradorCertificados::generarYGuardarCertificadoSinMerkle(Lote& lote) {
 
 
 void GeneradorCertificados::generarCertificadosMasivos(ArbolB& arbolB, const string& fecha, ArbolMerkle& merkle) {
-    ArbolAVL* avl = arbolB.obtenerArbolAVL(fecha);
+    ArbolAVL* avl=arbolB.obtenerArbolAVL(fecha);
     if (!avl) {
         cout << "No hay enregas para la fecha " << fecha << endl;
         return;
@@ -106,7 +109,7 @@ void GeneradorCertificados::generarCertificadosMasivos(ArbolB& arbolB, const str
         return;
     }
 
-    // Generar certificado para cada lote (sin actualizar Merkle)
+    // Generar certificado para cada lote 
     for (auto& lote : lotes) {
         Lote* lotePtr = avl->buscarLote(lote.codigoLote);
         if (lotePtr) {
@@ -150,7 +153,7 @@ string GeneradorCertificados::leerYDesencriptarCertificado(const string& nombreA
     string rutaCompleta=CARPETA_SALIDA +"/" + nombreArchivo;
     ifstream archivo(rutaCompleta, ios::binary);
     if (!archivo.is_open()) {
-        throw runtime_error("No se pudo abrir el archivo: " + rutaCompleta);
+        throw runtime_error("No se pudo abrir el arhivo: " + rutaCompleta);
     }
     string contenidoEncriptado((istreambuf_iterator<char>(archivo)), istreambuf_iterator<char>());
     archivo.close();

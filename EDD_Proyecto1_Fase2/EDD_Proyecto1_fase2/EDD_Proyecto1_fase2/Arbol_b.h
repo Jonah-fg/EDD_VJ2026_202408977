@@ -28,11 +28,23 @@ public:
     ArbolB();
     ~ArbolB();
 
+    void insertarEntrega(
+        const std::string& fecha,       
+        int codigoLote,
+        const std::string& codigoFinca,
+        const std::string& nombreFinca,
+        int sacos,
+        const std::string& tipoCafe,
+        const std::string& estado,
+        const std::string& fechaHora       
+    );
+
     void insertarFecha(const std::string& fecha, ArbolAVL* arbolAVL);
     ArbolAVL* obtenerArbolAVL(const std::string& fecha);
     std::vector<std::string> listarTodasLasFechas();
+    NodoB* getRaiz() const {return raiz;}
 
-    void generarDot(const std::string& nombreArchivo) const; // pendiente
+    void generarDot(const std::string& nombreArchivo) const; 
 };
 
 #endif

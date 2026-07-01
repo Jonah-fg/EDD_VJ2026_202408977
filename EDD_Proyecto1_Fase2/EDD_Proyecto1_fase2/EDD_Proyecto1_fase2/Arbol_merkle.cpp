@@ -2,27 +2,28 @@
 #include "hash_utils.h"
 #include <cmath>
 #include <stdexcept>
+#include <iostream>
 
 using namespace std;
 
 NodoMerkle::NodoMerkle(const string& h) : hash(h), izquierdo(nullptr), derecho(nullptr) {}
 
 NodoMerkle* ArbolMerkle::construirArbol(const vector<string>& hashes, int inicio, int fin) {
-    if (inicio>fin)
+    if (inicio > fin)
         return nullptr;
 
-    if (inicio==fin) {
+    if (inicio == fin) {
+        cout << "Hoja: " << hashes[inicio].substr(0, 8) << endl;
         return new NodoMerkle(hashes[inicio]);
     }
-
-    int medio=(inicio + fin) / 2;
-    NodoMerkle* izq =construirArbol(hashes, inicio, medio);
-    NodoMerkle* der= construirArbol(hashes, medio + 1, fin);
-
-    string hashCombinado=calcularHash(izq->hash+ der->hash);
-    NodoMerkle* nodo =new NodoMerkle(hashCombinado);
-    nodo->izquierdo = izq;
-    nodo->derecho=der;
+    int medio = (inicio + fin) / 2;
+    cout << "Nodo interno: [" << inicio << "," << fin << "] medio=" << medio << endl;
+    NodoMerkle* izq=construirArbol(hashes, inicio, medio);
+    NodoMerkle* der = construirArbol(hashes, medio + 1, fin);
+    string hashCombinado= calcularHash(izq->hash + der->hash);
+    NodoMerkle* nodo=new NodoMerkle(hashCombinado);
+    nodo->izquierdo =izq;
+    nodo->derecho =der;
     return nodo;
 }
 
@@ -76,6 +77,15 @@ string ArbolMerkle::obtenerHashRaiz() const {
         return "";
 
     return raiz->hash;
+}
+
+int ArbolMerkle::obtenerPosicionHoja(const string& hash) const {
+    for (size_t i= 0; i<hojas.size();++i) {
+        if (hojas[i]== hash)
+            return static_cast<int>(i);
+
+    }
+    return -1;
 }
 
 

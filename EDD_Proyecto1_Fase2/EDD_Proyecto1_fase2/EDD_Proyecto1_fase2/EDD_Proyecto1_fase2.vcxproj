@@ -146,6 +146,7 @@
     <ClCompile Include="EDD_Proyecto1_fase2.cpp" />
     <ClCompile Include="Encryption.cpp" />
     <ClCompile Include="FincaManager.cpp" />
+    <ClCompile Include="GeneradorReportes.cpp" />
     <ClCompile Include="Generador_certificados.cpp" />
     <ClCompile Include="hash_utils.cpp" />
   </ItemGroup>
@@ -156,6 +157,7 @@
     <ClInclude Include="CargadorJSON.h" />
     <ClInclude Include="Encryption.h" />
     <ClInclude Include="FincaManager.h" />
+    <ClInclude Include="GeneradorReportes.h" />
     <ClInclude Include="Generador_certificados.h" />
     <ClInclude Include="hash_utils.h" />
     <ClInclude Include="Utils.h" />

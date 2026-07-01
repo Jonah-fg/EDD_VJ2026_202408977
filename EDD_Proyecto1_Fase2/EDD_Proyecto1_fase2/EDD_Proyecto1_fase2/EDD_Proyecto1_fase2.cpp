@@ -8,6 +8,7 @@
 #include "ArbolAVL.h"
 #include "Arbol_merkle.h"
 #include "Generador_certificados.h"
+#include "GeneradorReportes.h"
 #include "FincaManager.h"
 #include "CargadorJSON.h"      
 #include "hash_utils.h"
@@ -18,6 +19,7 @@ using namespace std;
 ArbolB arbolB;
 ArbolMerkle arbolMerkle;
 FincaManager fincaManager;
+GeneradorReportes generadorReportes(arbolB, arbolMerkle, fincaManager);
 
 // Prototipos de funciones del menú
 void menuGestionDatos();
@@ -364,7 +366,7 @@ void listarFechas() {
 // ------------ 2.4 Trazabilidad completa -----------
 void trazabilidadLote() {
     string codigo;
-    cout << "Ingrese codigo de lote: ";
+    cout << "Ingrese cdigo de lote: ";
     getline(cin, codigo);
     vector<string> fechas =arbolB.listarTodasLasFechas();
     for (const string& f : fechas) {
@@ -373,22 +375,41 @@ void trazabilidadLote() {
             Lote* l = avl->buscarLote(codigo);
             if (l) {
                 cout << "\n=== TRAZABILIDAD – LOTE "<< codigo << "===\n";
-                cout << "Finca de origen: " << l->nombreFinca << "(" << l->codigoFinca << ")\n";
-                cout <<"Tipo de café: " << l->tipoCafe<< "\n";
+                cout << "Finca de origen: "<< l->nombreFinca << "("<< l->codigoFinca << ")\n";
+                cout <<"Tipo de café: " <<l->tipoCafe<< "\n";
                 cout << "Sacos: " << l->sacos <<"\n";
                 cout << "Historial de estados:\n";
                 for (const auto& reg : l->historialEstados) {
-                    cout <<"  [" << reg.timestamp << "] "<< reg.estado<< "\n";
+                    cout<<"  [" << reg.timestamp << "] "<< reg.estado<< "\n";
                 }
-                cout << "Certificado: " <<(l->hashCertificado.empty() ? "No emitido" : l->hashCertificado+".txt") << "\n";
-                cout << "Ruta tomada: " <<l->rutaTomada << "\n";
-                cout << "Distancia: " <<l->distanciaKm << "km\n";
+
+                // Información del certificado y Merkl
+                if (!l->hashCertificado.empty()) {
+                    cout<< "Certificado: "<< l->hashCertificado <<".txt\n";
+
+                    // Obtener posición en Merkle
+                    int pos=arbolMerkle.obtenerPosicionHoja(l->hashCertificado);
+                    string raiz= arbolMerkle.obtenerHashRaiz();
+                    if (pos != -1) {
+                        cout << "Posición en Merkle: hoja #" <<(pos + 1)<< " de " << arbolMerkle.obtenerNumeroHojas() << " / Hash raíz: " << raiz << "\n";
+                    }
+                    else {
+                        cout << "Advertecia: certificado no encontrado en el árbol de Mrkle.\n";
+                    }
+                }
+                else {
+                    cout << "Certificado: No emitido\n";
+                }
+
+                cout << "Ruta tomada: "<< l->rutaTomada << "\n";
+                cout <<"Distancia: "<< l->distanciaKm << " km\n";
                 return;
             }
         }
     }
-    cout << "Lote no encontrado.\n";
+    cout << "Loe no encontrado.\n";
 }
+
 
 // --------- 2.5 Avanzar estado -----------
 void avanzarEstadoLote() {
@@ -530,80 +551,25 @@ void mostrarHashRaiz() {
     }
 }
 
-
-
-// Esqueleto de funciones de reporte Graphviz, aun en proceso.
-void generarDotArbolB(const string& nombreArchivo) {
-    // Aquí implementaremos el recorrido del árbol B y generación de DOT
-    ofstream dot(nombreArchivo);
-    dot << "digraph ArbolB {\n";
-    dot << "  node [shape=record];\n";
-    dot << "  // Aquí se generan los nodos y relaciones\n";
-    dot << "}\n";
-    dot.close();
-}
-
-void generarDotAVL(const string& fecha, const string& nombreArchivo) {
-    ofstream dot(nombreArchivo);
-    dot << "digraph AVL_" << fecha << " {\n";
-    dot << "  node [shape=circle];\n";
-    dot << "  // Recorrer AVL de la fecha y generar nodos con BF\n";
-    dot << "}\n";
-    dot.close();
-}
-
-void generarDotMerkle(const string& nombreArchivo) {
-    ofstream dot(nombreArchivo);
-    dot << "digraph Merkle {\n";
-    dot << "  // Generar arbol de Merkle\n";
-    dot << "}\n";
-    dot.close();
-}
-
-void generarDotTrazabilidad(const string& codigoLote, const string& nombreArchivo) {
-    ofstream dot(nombreArchivo);
-    dot << "digraph Trazabilidad_" <<codigoLote<< " {\n";
-    dot << "// Generar cadena de estados\n";
-    dot << "}\n";
-    dot.close();
-}
-
+//Reportes
 void reporteArbolB() {
-    string archivo ="arbolB.dot";
-    generarDotArbolB(archivo);
-    string comando ="dot -Tpng " + archivo + " -o arbolB.png";
-    system(comando.c_str());
-    cout << "Reporte generado: arbolB.png\n";
+    generadorReportes.reporteArbolB("arbolB");
 }
 
 void reporteAVL() {
     string fecha;
     cout << "Ingrese fecha (YYYY-MM-DD): ";
     getline(cin, fecha);
-    string archivo="avl_"+fecha + ".dot";
-    generarDotAVL(fecha, archivo);
-    string comando = "dot -Tpng "+archivo + " -o avl_" +fecha + ".png";
-    system(comando.c_str());
-    cout << "Reporte generado: avl_" <<fecha<< ".png\n";
+    generadorReportes.reporteAVL(fecha, "avl");
 }
 
 void reporteMerkle() {
-    string archivo ="merkle.dot";
-    generarDotMerkle(archivo);
-    string comando="dot -Tpng "+ archivo +" -o merkle.png";
-    system(comando.c_str());
-    cout << "Reporte genrado: merkle.png\n";
+    generadorReportes.reporteMerkle("merkle");
 }
 
 void reporteTrazabilidad() {
     string codigo;
-    cout << "Ingrese código de lote: ";
+    cout << "Ingrese cdigo de lote: ";
     getline(cin, codigo);
-    string archivo ="trazabilidad_" + codigo + ".dot";
-    generarDotTrazabilidad(codigo, archivo);
-    string comando="dot -Tpng " + archivo+ "-o trazabilidad_" + codigo + ".png";
-    system(comando.c_str());
-    cout << "Reporte generado: trazabilidad_" << codigo << ".png\n";
+    generadorReportes.reporteTrazabilidad(codigo, "trazabilidad");
 }
-
-
