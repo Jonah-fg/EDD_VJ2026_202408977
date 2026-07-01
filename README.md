@@ -1,145 +1,163 @@
-# Manual Técnico – EDD CoffeeTrack Fase 1
+# ☕ EDD CoffeeTrack – Fase 2
 
 **Universidad San Carlos de Guatemala**  
 **Facultad de Ingeniería**  
 **Ingeniería en Ciencias y Sistemas**  
-**Estructura de Datos**  
-
-**Estudiante:** Jonathan Eduardo Fuentes Garcia 
-**Carné:** 202408977
-**Fecha:** 14/06/2026 
+**Estructuras de Datos**  
 
 ---
 
-## ¿Qué es EDD CoffeeTrack?
+## Datos del Estudiante
 
-Es un programa de consola hecho en C++ que ayuda a cotrolar el café en un beneficio húmedo. Sirve para llevar el inventario de lotes de café, la cola de despulpado, las entregas que hacen las fincas y las acciones del administrador. Todo se guarda usando listas, colas y pilas hechas a mano (sin usar las que ya trae C++). También genera dibujos de las estructuras con Grphviz.
-
----
-
-## Estructuras de datos que usé
- 
-### 1. Lista doblemente enlazada (`ListaDoble`)
-**Para qué sirve:** Guarda los lotes de café pergamino que están en la bodega. Los lotes se ordenan por código de lote.
-
-**Cómo está hecha:**  
-Cada nodo tiene un `Lote` (con código, finca, origen, cantidad, fecha de recepción, nivel mínimo) y dos punteros: uno al siguiente (`sig`) y otro al anterior (`ant`). La lista tiene punteros a la cabeza y a la cola.
-
-**Métodos importantes:**
-- `insertarOrdenado()`: Agrega un lote en el lugar que le toca según su código (orden ascendente). Si la lista está vacía, el nuevo es cabeza y cola. Si el nuevo código es menor que el de la cabeza, se inserta al inicio. Si no, recorre hasta encontrar la posición correcta y engancha el nodo.
-- `buscarPorCodigo()` y `buscarPorFinca()`: Recorren la lista desde la cabeza hasta encontrar lo que buscan.
-- `mostrar()`: Imprime todos los lotes. Si la cantidad es menor que el nivel mínimo, muestra `[ALERTA: bajo stock]`.
-- `generarReporte()`: Crea un archivo `.dot` y luego una imagen PNG. Los nodos son rectangulares, las flechas van para los dos lados (bidireccionales) y el color es verde si hay suficiente stock, rojo si falta.
-
-**Complejidad:**  
-- Insertar ordenado: O(n) porque en el peor caso recorre toda la lista.  
-- Buscar: O(n) también.  
-- Mostrar: O(n).
-
-### 2. Cola FIFO (`Cola`)
-**Para qué sirve:** Guarda los lotes que están esperando a ser despulpados. El primero en entrar es el primero en salir.
-
-**Cómo está hecha:**  
-Cada nodo tiene un `Lote` y un puntero al siguiente. La cola tiene punteros al frente y al final.
-
-**Métodos:**
-- `enqueue()`: Agrega un lote al final. Si la cola está vacía, el nuevo es frente y final. Si no, el final actual apunta al nuevo y el nuevo pasa a ser el final.
-- `dequeue()`: Saca el lote del frente. Guarda el dato, mueve el frente al siguiente y borra el nodo. Si la cola se queda vacía, el final también se pone a `nullptr`.
-- `generarReporte()`: Hace un dibujo con nodos circulares y flechas de izquierda a derecha (una sola dirección). También muestra cuántos lotes están esperando.
-
-**Complejidad:**  
-- Enqueue y dequeue: O(1) (solo cambian punteros).  
-- Mostrar: O(n).
-
-### 3. Pila LIFO (`Pila`) – Bitácora del administrador
-**Para qué sirve:** Guarda un historial de las acciones importantes que hace el administrador (registrar lote, procesar cola, registrar entrega). La última acción es la primera que se muestra.
-
-**Cómo está hecha:**  
-Cada nodo tiene un `Registro` (fechaHora, tipoAccion, detalles) y un puntero `abajo` hacia el nodo más antiguo. Solo se guarda el `tope`.
-
-**Métodos:**
-- `push()`: Crea un nuevo nodo, su `abajo` apunta al tope actual, y luego el tope se actualiza al nuevo.
-- `pop()`: Saca el nodo del tope, devuelve su registro y lo elimina.
-- `generarReporte()`: Dibuja una pila vertical (de arriba hacia abajo). El nodo de arriba es el más reciente (tope). Colores: azul para "Registro lote", naranja para "Registro entrega", verde para "Procesar lote".
-
-**Complejidad:**  
-- Push y pop: O(1).  
-- Mostrar: O(n).
-
-### 4. Lista de pilas (`ListaPilas`) – Fincas con entregas
-**Para qué sirve:** Cada finca productora tiene una pila donde se guardan las entregas de sacos que hizo por día de cosecha. La lista de fincas es simplemente enlazada (solo un puntero hacia la siguiente).
-
-**Cómo está hecha:**  
-Hay dos estructuras anidadas:
-- `NodoFinca`: tiene el nombre de la finca, un puntero `topeEntregas` (que apunta a una pila de entregas) y un puntero `sig` a la siguiente finca.
-- `NodoEntrega`: tiene `fecha` y `cantidad`, y un puntero `abajo` (para la pila).
-
-**Métodos:**
-- `agregarFinca()`: Crea un nuevo nodo finca y lo pone al inicio de la lista.
-- `existeFinca()`: Recorre la lista para ver si ya está registrada.
-- `registrarEntrega()`: Busca la finca, crea un nuevo nodo de entrega y lo apila (push) en la pila de esa finca.
-- `generarReporte()`: Dibuja un cluster (cajita) por cada finca, con el nombre arriba. Dentro de cada cluster, las entregas se apilan verticalmente (la más reciente arriba). Las fincas se colocan una al lado de la otra (horizontal).
-
-**Complejidad:**  
-- Agregar finca: O(1) (inserta al inicio).  
-- Buscar finca y registrar entrega: O(m) donde m es el número de fincas (recorre la lista). Luego el push es O(1).  
-- Mostrar: O(m + total entregas).
+- **Nombre:** Jonathan Eduardo Fuentes Garcia  
+- **Carnet:** 202408977  
+- **Curso:** Estructuras de Datos  
+- **Fecha de Entrega:** 30/06/2026
+- :)
 
 ---
 
-## Cómo funciona el programa paso a paso
+## Resumen Ejecutivo
 
-### Al iniciar
-Te pregunta si eres administrador o usuario. Si eres administrador, entras directo. Si eres usuario, te pide usuario y contraseña (solo sirven `operario/123` y `planta/456`).
+EDD CoffeeTrack es un sistema de trazabilidad y certificación para lotes de café especial. En esta Fase 2, el sistema evoluciona desde estructuras lineales (usadas en la Fase 1) hacia estructuras no lineales para indexar, buscar y certificar las entregas de forma eficiente y segura.
 
-### Menú de administrador (7 opciones + salir)
-1. **Registrar lote manual:** Ingresas los datos (código, finca, origen, cantidad, fecha, nivel mínimo). El lote se guarda en la lista doble ordenada. Luego te pregunta si quieres encolarlo para despulpado. Si dices que sí, también se agrega a la cola.
-2. **Carga masiva CSV:** Lees un archivo .csv con varios lotes y se agregan todos al inventario.
-3. **Gestionar fincas:** Agregas una nueva finca (solo el nombre). Se guada en la lista simple de fincas.
-4. **Registrar entrega:** Eliges una finca que ya existe, pones fecha y cantidad. Eso se apila en la pila de entregas de esa finca. Además, se crea un lote nuevo en el inventario (con código automático como `ENT-fecha-nombre`) con esa cantidad.
-5. **Procesar cola:** Saca el primer lote de la cola de despulpado, muestra sus detalles y lo registra en la bitácora.
-6. **Ver inventario:** Muestra todos los lotes ordenados, con alertas si alguno tiene bajo stock.
-7. **Consultar bitácora:** Muestra todas las acciones que hizo el administrador, de la más reciente a la más antigua.
-8. **Salir:** Regresa al menú de selección de rol.
+El sistema implementa:
 
-### Menú de usuario (operario)
-1. **Consultar disponibilidad:** Buscas un lote por código o por finca. Te dice la cantidad y el estado.
-2. **Enviar lote a cola:** Ingresas el código de un lote que esté en inventario (con stock >0) y se encola paa despulpado.
-3. **Ver historial de procesados:** Muestra toda la bitácora (pila). Ahí puedes ver las acciones de tipo "Procesar lote".
-4. **Cerrar sesión:** Vuelve al menú de roles.
-
-### Reportes gráficos
-
-Cada vez que haces algo que cambia los datos (registrar, encolar, procesar, agregar finca, etc.), se actualizan cuatro imágenes PNG:
-- `reporte_inventario.png` – Lista doble con colores.
-- `reporte_cola.png` – Cola circular.
-- `reporte_bitacora.png` – Pila vertical con colores.
-- `reporte_fincas.png` – Lista horizontal de fincas con pilas de entregas.
-
-Para que esto funcione, necesitas tener instalado Graphviz y que el comando `dot` se pueda ejecutar desde la terminal.
+- Un **Árbol B** como índice principal por fecha (`YYYY-MM-DD`).
+- **Árboles AVL** dentro de cada nodo del Árbol B para organizar los lotes entregados en esa fecha.
+- Un **Árbol de Merkle** para garantizar la integridad criptográfica de los certificados emitidos.
+- Carga masiva de datos desde un archivo **JSON**.
+- Generación de **certificados encriptados** (con cifrado XOR) y almacenamiento en carpeta local.
+- **Reportes gráficos** mediante **Graphviz** (`.dot` → `.png`) del Árbol B, AVLs, Árbol de Merkle y trazabilidad de lotes.
 
 ---
 
-## Cómo compilar y ejecutar
+## Estructuras de Datos Implementadas
+
+Todas las estructuras fueron implementadas **desde cero** en C++, sin usar librerías de la STL (como `std::map`, `std::set`, `std::queue`, etc.) para los fines requeridos.
+
+### 1. Árbol B (Índice por Fecha)
+- **Orden mínimo:** 3 (cada nodo puede contener entre **2 y 6 claves**).
+- **Claves:** Fechas en formato `string` (`YYYY-MM-DD`).
+- **Operaciones:**
+  - Inserción con división de nodos al exceder la capacidad (6 claves).
+  - Búsqueda por fecha (retorna el puntero al Árbol AVL asociado).
+  - Recorrido in-order para listar todas las fechas registradas.
+- **Complejidad:**
+  - Inserción/Búsqueda: **O(logₘ n)**, donde *m* es el orden del árbol (máximo 6 claves por nodo).
+  - Recorrido in-order: **O(n)**, donde *n* es el número total de fechas.
+
+### 2. Árbol AVL (Lotes por Fecha)
+- Cada nodo del Árbol B apunta a un Árbol AVL independiente que almacena los lotes de esa fecha.
+- **Clave de ordenamiento:** `codigo_lote` (`int` convertido a `string`).
+- **Campos del nodo AVL:** código de lote, código de finca, nombre de finca, sacos, tipo de café, ruta tomada, distancia, estado actual, historial de estados y hash del certificado.
+- **Operaciones:**
+  - Inserción con rotaciones (LL, RR, LR, RL).
+  - Búsqueda por código de lote.
+  - Recorrido in-order.
+  - Avance de estado (con timestamp) siguiendo la secuencia:  
+    `recibido → en_cola → procesado → en_bodega → certificado_emitido`.
+- **Complejidad:**
+  - Inserción/Búsqueda: **O(log n)**, donde *n* es el número de lotes en esa fecha.
+
+### 3. Árbol de Merkle (Integridad de Certificados)
+- **Hojas:** Hash del contenido original de cada certificado (antes de encriptar).
+- **Nodos internos:** Hash de la concatenación de sus dos hijos.
+- **Manejo de impares:** Si el número de hojas es impar, la última hoja se duplica.
+- **Operaciones:**
+  - Construcción completa desde una lista de hashes.
+  - Actualización automática al generar un nuevo certificado.
+  - Verificación de integridad (recalcular hash y comparar).
+- **Complejidad:**
+  - Construcción: **O(n)**, donde *n* es el número de certificados.
+  - Verificación: **O(log n)** (ideal), aunque en esta implementación se recalcula la raíz completamente, resultando en **O(n)** por simplicidad y consistencia.
+
+### 4. Función de Hashing
+Se implementó una función híbrida que combina **FNV-1a de 64 bits** con una etapa de **avalancha** (mezcla de bits) para mejorar la distribución.
+
+- **Entrada:** `std::string`.
+- **Salida:** Cadena hexadecimal de **32 caracteres** (2 bloques de 16 bytes).
+- **Justificación:** Es determinista, rápida y suficientemente distribuida para evitar colisiones en el contexto del proyecto. Se aplica sobre el contenido del certificado (`hash_contenido`) y sobre el código del lote (`hash_nombre`).
+
+### 5. Encriptación (Certificados)
+Se utilizó un cifrado **XOR** con una clave fija (`"CoffeeTrack2026EDD_Secret!"`).
+
+- **Razón:** Es un método simétrico simple y reversible, ideal para proteger el contenido de los certificados sin necesidad de librerías externas. El objetivo no es seguridad militar, sino evitar la lectura directa del archivo.
+
+---
+
+## Carga Masiva desde JSON
+
+El sistema lee un archivo JSON con dos secciones principales:
+
+1. **`fincas`**: Define las fincas productoras (código, nombre, región, propietario).
+2. **`entregas`**: Define los lotes (fecha, código_lote, finca, sacos, tipo_cafe, estado).
+
+**Flujo de procesamiento:**
+1. Se cargan primero todas las fincas (se almacenan en `FincaManager`).
+2. Se procesan las entregas una por una.
+3. Se valida que la finca exista. Si no existe, la entrega se ignora y se incrementa el contador de ignoradas.
+4. Si la fecha no existe en el Árbol B, se crea un nuevo AVL y se inserta la fecha.
+5. Se inserta el lote en el AVL correspondiente.
+
+**Complejidad:**  
+El parseo manual del JSON recorre todo el archivo una sola vez, resultando en **O(n)**, donde *n* es el número total de objetos (fincas + entregas).
+
+---
+
+## Menú Principal
+
+El sistema expone un menú interactivo en consola con las siguientes opciones:
+
+1. **Gestión de Datos:** Carga JSON y registro manual.
+2. **Consultas y Trazabilidad:** Búsquedas, listado de fechas, trazabilidad y avance de estados.
+3. **Rutas:** (Omitido – ver sección "Decisiones de Diseño").
+4. **Certificados:** Generación individual, masiva y visualización desencriptada.
+5. **Árbol de Merkle:** Construcción, verificación y hash raíz.
+6. **Reportes Graphviz:** Generación de imágenes para Árbol B, AVL, Merkle y trazabilidad.
+
+---
+
+## Reportes con Graphviz
+
+Todos los reportes se generan en formato `.dot` y se compilan automáticamente a `.png` usando el comando `dot -Tpng`.
+
+| Reporte | Descripción | Formato de nodos |
+| :--- | :--- | :--- |
+| **Árbol B** | Muestra las fechas como claves. Nodos hoja resaltados en **celeste**. | Rectangulares (`record`). |
+| **AVL (por fecha)** | Muestra código d lote, finca, sacos y factor de balance (BF). BF fuera de `{-1,0,1}` se colorea en **rojo**. | Circulares. |
+| **Árbol de Merkle** | Muestra hashes truncados (8 caracteres). Hojas en **verde**, raíz en **azul**. | Rectangulares. |
+| **Trazabilidad** | Diagrama lineal de estados con timestamps, flecha al certificado y posición en Merkle. | Rectangulares. |
+
+---
+
+## Análisis de Complejidad Global
+
+A continuación se resume la complejidad temporal y espacial de las principales operaciones del sistema.
+
+| Estructura / Operación | Complejidad Temporal | Complejidad Espacial | Observaciones |
+| :--- | :--- | :--- | :--- |
+| **Árbol B** – Inserción | **O(logₘ n)** | **O(n)** | *m* = orden del árbol (máximo 6 claves por nodo). |
+| **Árbol B** – Búsqueda por fecha | **O(logₘ n)** | **O(1)** | Retorna puntero al AVL correspondiente. |
+| **Árbol B** – Recorrido in-order | **O(n)** | **O(n)** | Para listar todas las fechas. |
+| **Árbol AVL** – Inserción | **O(log n)** | **O(n)** | *n* = número de lotes en esa fecha. |
+| **Árbol AVL** – Búsqueda por código | **O(log n)** | **O(1)** | |
+| **Árbol de Merkle** – Construcción | **O(n)** | **O(n)** | *n* = número de certificados (hojas). |
+| **Árbol de Merkle** – Verificación | **O(n)** | **O(1)** | Recalcula la raíz completa por simplicidad. |
+| **Carga JSON** – Parseo | **O(n)** | **O(1)** | *n* = número total de objetos (fincas + entregas). |
+| **Generación de certificado** | **O(1)** | **O(1)** | Creación de archivo y hash. |
+| **Reporte Graphviz** – Generación | **O(n)** | **O(n)** | Escritura del archivo `.dot`. |
+
+> **Nota:**  
+> - **n** representa el tamaño de la entrada (númer de fechas, lotes o certificados, según el contexto).  
+> - Todas las estructuras son implementadas manualmente, sin uso de STL, por lo que la complejidad refleja el comportamiento real del código.
+
+## Instrucciones de Compilación y Ejecución
 
 ### Requisitos
-- Un compiador de C++ (g++, Visual Studio, etc.)
-- Graphviz instalado (desde [graphviz.org](https://graphviz.org/)).
+- Compilador C++ (g++ o MSVC).
+- Graphviz instalado y `dot` accesible desde la terminal (para los reportes).
 
-### Pasos
-1. Guarda todos los archivos en una carpeta (`ListaDoble.h`, `ListaDoble.cpp`, `Cola.h`, `Cola.cpp`, `Pila.h`, `Pila.cpp`, `ListaPilas.h`, `ListaPilas.cpp`, `Lote.h`, `Registro.h`, `Entrega.h`, `main.cpp`).
-2. Abre una terminal en esa carpeta.
-3. Compila con:  
-   `g++ -std=c++11 *.cpp -o coffeetrack`
-4. Ejecuta:  
-   - En Windows: `coffeetrack.exe`  
-   - En Linux/Mac: `./coffeetrack`
-
-### Archivo CSV de ejemplo (`datos_ejemplo.csv`)
-Pon este contenido en un archivo y guárdalo en la misma carpeta del programa:
-```csv
-codigo,finca,origen,cantidad,fechaRecepcion,nivelMinimo
-L001,FincaElSol,Antigua,100,2026-06-01,20
-L002,FincaLaMontana,Huehuetenango,50,2026-06-02,15
-L003,FincaElBosque,Coban,200,2026-06-03,30
-
+### Compilación (Linux/Mac)
+```bash
+g++ -std=c++11 -o EDD_CoffeeTrack *.cpp
